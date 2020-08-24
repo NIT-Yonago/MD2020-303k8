@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
 /* USER CODE BEGIN 0 */
+const int LEDPINS[4]={D5D11_Pin,D4D10_Pin,D3D9_Pin,D2D8_Pin};
 
 /* USER CODE END 0 */
 
@@ -69,7 +70,22 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
-
+void GPIO_Show_Speed(int speed){
+	if(0<speed){
+		HAL_GPIO_WritePin(A2C8_GPIO_Port, A2C8_Pin, 1);
+		HAL_GPIO_WritePin(D2D8_GPIO_Port, LEDPINS[0], !(0<speed));
+		HAL_GPIO_WritePin(D2D8_GPIO_Port, LEDPINS[1], !(1<speed));
+		HAL_GPIO_WritePin(D2D8_GPIO_Port, LEDPINS[2], !(2<speed));
+		HAL_GPIO_WritePin(D2D8_GPIO_Port, LEDPINS[3], !(3<speed));
+	}
+	if(speed<=0){
+		HAL_GPIO_WritePin(A2C8_GPIO_Port, A2C8_Pin, 0);
+		HAL_GPIO_WritePin(D2D8_GPIO_Port, LEDPINS[0], speed<-0);
+		HAL_GPIO_WritePin(D2D8_GPIO_Port, LEDPINS[1], speed<-1);
+		HAL_GPIO_WritePin(D2D8_GPIO_Port, LEDPINS[2], speed<-2);
+		HAL_GPIO_WritePin(D2D8_GPIO_Port, LEDPINS[3], speed<-3);
+	}
+}
 /* USER CODE END 2 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
