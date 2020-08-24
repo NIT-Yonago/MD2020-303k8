@@ -46,7 +46,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 osThreadId controlTaskHandle;
@@ -125,15 +124,18 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
-{
-  /* USER CODE BEGIN StartDefaultTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartDefaultTask */
+void StartDefaultTask(void const *argument) {
+	/* USER CODE BEGIN StartDefaultTask */
+	/* Infinite loop */
+	int counter = -4;
+	for (;;) {
+		GPIO_Show_Speed(counter);
+		counter++;
+		if (counter > 4)
+			counter = -4;
+		osDelay(50);
+	}
+	/* USER CODE END StartDefaultTask */
 }
 
 /* USER CODE BEGIN Header_StartControlTask */
