@@ -27,23 +27,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  00020010  2**0
                   CONTENTS, READONLY
- 12 .debug_info   00019041  00000000  00000000  00020040  2**0
+ 12 .debug_info   0001902a  00000000  00000000  00020040  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_abbrev 000038da  00000000  00000000  00039081  2**0
+ 13 .debug_abbrev 000038bb  00000000  00000000  0003906a  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_aranges 000015a0  00000000  00000000  0003c960  2**3
+ 14 .debug_aranges 000015a0  00000000  00000000  0003c928  2**3
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_ranges 000013c8  00000000  00000000  0003df00  2**3
+ 15 .debug_ranges 000013c8  00000000  00000000  0003dec8  2**3
                   CONTENTS, READONLY, DEBUGGING
- 16 .debug_macro  0001af68  00000000  00000000  0003f2c8  2**0
+ 16 .debug_macro  0001af76  00000000  00000000  0003f290  2**0
                   CONTENTS, READONLY, DEBUGGING
- 17 .debug_line   00012c06  00000000  00000000  0005a230  2**0
+ 17 .debug_line   00012c10  00000000  00000000  0005a206  2**0
                   CONTENTS, READONLY, DEBUGGING
- 18 .debug_str    0009c53b  00000000  00000000  0006ce36  2**0
+ 18 .debug_str    0009c53b  00000000  00000000  0006ce16  2**0
                   CONTENTS, READONLY, DEBUGGING
- 19 .comment      0000007b  00000000  00000000  00109371  2**0
+ 19 .comment      0000007b  00000000  00000000  00109351  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000058cc  00000000  00000000  001093ec  2**2
+ 20 .debug_frame  000058cc  00000000  00000000  001093cc  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -914,39 +914,38 @@ void StartDefaultTask(void const *argument) {
  80006cc:	68fb      	ldr	r3, [r7, #12]
  80006ce:	3301      	adds	r3, #1
  80006d0:	60fb      	str	r3, [r7, #12]
-		if (counter > 4)
+		if (counter > 5)
  80006d2:	68fb      	ldr	r3, [r7, #12]
- 80006d4:	2b04      	cmp	r3, #4
+ 80006d4:	2b05      	cmp	r3, #5
  80006d6:	dd02      	ble.n	80006de <StartDefaultTask+0x26>
 			counter = -4;
  80006d8:	f06f 0303 	mvn.w	r3, #3
  80006dc:	60fb      	str	r3, [r7, #12]
-		osDelay(50);
- 80006de:	2032      	movs	r0, #50	; 0x32
- 80006e0:	f005 fc9e 	bl	8006020 <osDelay>
-	for (;;) {
- 80006e4:	e7ef      	b.n	80006c6 <StartDefaultTask+0xe>
+		osDelay(10000);
+ 80006de:	f242 7010 	movw	r0, #10000	; 0x2710
+ 80006e2:	f005 fc9d 	bl	8006020 <osDelay>
+		GPIO_Show_Speed(counter);
+ 80006e6:	e7ee      	b.n	80006c6 <StartDefaultTask+0xe>
 
-080006e6 <StartControlTask>:
+080006e8 <StartControlTask>:
 * @param argument: Not used
 * @retval None
 */
 /* USER CODE END Header_StartControlTask */
 void StartControlTask(void const * argument)
 {
- 80006e6:	b580      	push	{r7, lr}
- 80006e8:	b082      	sub	sp, #8
- 80006ea:	af00      	add	r7, sp, #0
- 80006ec:	6078      	str	r0, [r7, #4]
+ 80006e8:	b580      	push	{r7, lr}
+ 80006ea:	b082      	sub	sp, #8
+ 80006ec:	af00      	add	r7, sp, #0
+ 80006ee:	6078      	str	r0, [r7, #4]
   /* USER CODE BEGIN StartControlTask */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
- 80006ee:	2001      	movs	r0, #1
- 80006f0:	f005 fc96 	bl	8006020 <osDelay>
- 80006f4:	e7fb      	b.n	80006ee <StartControlTask+0x8>
-	...
+ 80006f0:	2001      	movs	r0, #1
+ 80006f2:	f005 fc95 	bl	8006020 <osDelay>
+ 80006f6:	e7fb      	b.n	80006f0 <StartControlTask+0x8>
 
 080006f8 <MX_GPIO_Init>:
         * Output

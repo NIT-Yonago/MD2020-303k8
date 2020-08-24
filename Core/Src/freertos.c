@@ -26,7 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */     
-
+#include "gpio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -131,9 +131,9 @@ void StartDefaultTask(void const *argument) {
 	for (;;) {
 		GPIO_Show_Speed(counter);
 		counter++;
-		if (counter > 4)
+		if (counter > 5)
 			counter = -4;
-		osDelay(50);
+		osDelay(10000);
 	}
 	/* USER CODE END StartDefaultTask */
 }
