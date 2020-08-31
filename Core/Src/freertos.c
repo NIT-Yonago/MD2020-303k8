@@ -25,13 +25,12 @@
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+/* USER CODE BEGIN Includes */     
 #include "gpio.h"
 #include "usart.h"
 #include "tim.h"
 #include "can.h"
 #include "adc.h"
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,21 +52,24 @@
 /* USER CODE BEGIN Variables */
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
-osThreadId controlTaskHandle;
+osThreadId MinorLoopTaskHandle;
+osThreadId MajorLoopTaskHandle;
+osThreadId CanCommunicatioHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void const *argument);
-void StartControlTask(void const *argument);
+void StartDefaultTask(void const * argument);
+void StartMinorLoopTask(void const * argument);
+void StartMajorLoopTask(void const * argument);
+void StartCanCommunicationTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
-		StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize);
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
 
 /* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
 static StaticTask_t xIdleTaskTCBBuffer;
@@ -83,43 +85,51 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
 /* USER CODE END GET_IDLE_TASK_MEMORY */
 
 /**
- * @brief  FreeRTOS initialization
- * @param  None
- * @retval None
- */
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
 void MX_FREERTOS_Init(void) {
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* USER CODE BEGIN RTOS_MUTEX */
+  /* USER CODE BEGIN RTOS_MUTEX */
 	/* add mutexes, ... */
-	/* USER CODE END RTOS_MUTEX */
+  /* USER CODE END RTOS_MUTEX */
 
-	/* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
 	/* add semaphores, ... */
-	/* USER CODE END RTOS_SEMAPHORES */
+  /* USER CODE END RTOS_SEMAPHORES */
 
-	/* USER CODE BEGIN RTOS_TIMERS */
+  /* USER CODE BEGIN RTOS_TIMERS */
 	/* start timers, add new ones, ... */
-	/* USER CODE END RTOS_TIMERS */
+  /* USER CODE END RTOS_TIMERS */
 
-	/* USER CODE BEGIN RTOS_QUEUES */
+  /* USER CODE BEGIN RTOS_QUEUES */
 	/* add queues, ... */
-	/* USER CODE END RTOS_QUEUES */
+  /* USER CODE END RTOS_QUEUES */
 
-	/* Create the thread(s) */
-	/* definition and creation of defaultTask */
-	osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-	defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* Create the thread(s) */
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-	/* definition and creation of controlTask */
-	osThreadDef(controlTask, StartControlTask, osPriorityHigh, 0, 128);
-	controlTaskHandle = osThreadCreate(osThread(controlTask), NULL);
+  /* definition and creation of MinorLoopTask */
+  osThreadDef(MinorLoopTask, StartMinorLoopTask, osPriorityRealtime, 0, 256);
+  MinorLoopTaskHandle = osThreadCreate(osThread(MinorLoopTask), NULL);
 
-	/* USER CODE BEGIN RTOS_THREADS */
+  /* definition and creation of MajorLoopTask */
+  osThreadDef(MajorLoopTask, StartMajorLoopTask, osPriorityHigh, 0, 1024);
+  MajorLoopTaskHandle = osThreadCreate(osThread(MajorLoopTask), NULL);
+
+  /* definition and creation of CanCommunicatio */
+  osThreadDef(CanCommunicatio, StartCanCommunicationTask, osPriorityAboveNormal, 0, 512);
+  CanCommunicatioHandle = osThreadCreate(osThread(CanCommunicatio), NULL);
+
+  /* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
-	/* USER CODE END RTOS_THREADS */
+  /* USER CODE END RTOS_THREADS */
 
 }
 
@@ -130,42 +140,72 @@ void MX_FREERTOS_Init(void) {
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const *argument) {
-	/* USER CODE BEGIN StartDefaultTask */
+void StartDefaultTask(void const * argument)
+{
+  /* USER CODE BEGIN StartDefaultTask */
 	/* Infinite loop */
-//	int counter = -4;
-	TickType_t pxPrevWakeTime = xTaskGetTickCount();
 	for (;;) {
-		vTaskDelayUntil(&pxPrevWakeTime, 100); //100Hz loop
-		char buf[] = "1";
-		HAL_UART_Transmit(&huart2, (uint8_t*) buf, sizeof(buf), 10);
-//		GPIO_Show_Speed(counter);
-//		counter++;
-//		if (counter > 5)
-//			counter = -4;
-//		osDelay(10000);
+		osDelay(1);
 	}
-	/* USER CODE END StartDefaultTask */
+  /* USER CODE END StartDefaultTask */
 }
 
-/* USER CODE BEGIN Header_StartControlTask */
+/* USER CODE BEGIN Header_StartMinorLoopTask */
 /**
- * @brief Function implementing the controlTask thread.
- * @param argument: Not used
- * @retval None
- */
-/* USER CODE END Header_StartControlTask */
-void StartControlTask(void const *argument) {
-	/* USER CODE BEGIN StartControlTask */
+* @brief Function implementing the MinorLoopTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartMinorLoopTask */
+void StartMinorLoopTask(void const * argument)
+{
+  /* USER CODE BEGIN StartMinorLoopTask */
+  /* Infinite loop */
 	TickType_t pxPrevWakeTime = xTaskGetTickCount();
-	/* Infinite loop */
-	for (;;) {
-		vTaskDelayUntil(&pxPrevWakeTime, 10); //1kHz loop
-		char buf[] = "2";
-		HAL_UART_Transmit(&huart2, (uint8_t*) buf, sizeof(buf), 10);
-//    osDelay(1);
-	}
-	/* USER CODE END StartControlTask */
+  for(;;)
+  {
+		vTaskDelayUntil(&pxPrevWakeTime, 1); //20000Hz loop
+		Duty_Out(-0.1);
+  }
+  /* USER CODE END StartMinorLoopTask */
+}
+
+/* USER CODE BEGIN Header_StartMajorLoopTask */
+/**
+* @brief Function implementing the MajorLoopTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartMajorLoopTask */
+void StartMajorLoopTask(void const * argument)
+{
+  /* USER CODE BEGIN StartMajorLoopTask */
+  /* Infinite loop */
+	TickType_t pxPrevWakeTime = xTaskGetTickCount();
+  for(;;)
+  {
+	  vTaskDelayUntil(&pxPrevWakeTime, 4); //5000Hz loop
+  }
+  /* USER CODE END StartMajorLoopTask */
+}
+
+/* USER CODE BEGIN Header_StartCanCommunicationTask */
+/**
+* @brief Function implementing the CanCommunicatio thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartCanCommunicationTask */
+void StartCanCommunicationTask(void const * argument)
+{
+  /* USER CODE BEGIN StartCanCommunicationTask */
+  /* Infinite loop */
+	TickType_t pxPrevWakeTime = xTaskGetTickCount();
+  for(;;)
+  {
+	  vTaskDelayUntil(&pxPrevWakeTime, 20); //1kHz loop
+  }
+  /* USER CODE END StartCanCommunicationTask */
 }
 
 /* Private application code --------------------------------------------------*/

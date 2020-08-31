@@ -21,7 +21,9 @@
 #include "tim.h"
 
 /* USER CODE BEGIN 0 */
-
+  TIM_Encoder_InitTypeDef sConfig = {0};
+TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim2;
@@ -30,8 +32,8 @@ TIM_HandleTypeDef htim3;
 /* TIM2 init function */
 void MX_TIM2_Init(void)
 {
-  TIM_Encoder_InitTypeDef sConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
+//  TIM_Encoder_InitTypeDef sConfig = {0};
+//  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
@@ -63,8 +65,8 @@ void MX_TIM2_Init(void)
 /* TIM3 init function */
 void MX_TIM3_Init(void)
 {
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
+//  TIM_MasterConfigTypeDef sMasterConfig = {0};
+//  TIM_OC_InitTypeDef sConfigOC = {0};
 
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
@@ -230,7 +232,35 @@ void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* tim_pwmHandle)
 } 
 
 /* USER CODE BEGIN 1 */
-
+void TIM_Start_Encoder(){
+	if(HAL_TIM_Encoder_Init(&htim2, &sConfig)!=HAL_OK)Error_Handler();
+	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+	TIM2->CNT=2000000000;
+}
+uint32_t Read_Encoder(){
+	return TIM2->CNT;
+}
+void TIM_PWMs_Set(int *pwms){
+	for (int i = 0; i < 4; ++i) {
+		sConfigOC.Pulse = pwms[i];
+		if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, 0x00000004U * i)
+				!= HAL_OK)
+			Error_Handler();
+		if (HAL_TIM_PWM_Start(&htim3, 0x00000004U * i) != HAL_OK)
+			Error_Handler();
+	}
+}
+void Duty_Out(float duty){
+	static int pwms[4];
+	if (duty > 0) {
+		pwms[0] = pwms[1] = duty * 1023;
+		pwms[2] = pwms[3] = 0;
+	} else {
+		pwms[0] = pwms[1] = 0;
+		pwms[2] = pwms[3] = -duty * 1023;
+	}
+	TIM_PWMs_Set(pwms);
+}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
