@@ -43,7 +43,10 @@ void MX_TIM3_Init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                     
 /* USER CODE BEGIN Prototypes */
-
+int32_t TIM_Encoder_Value(void);
+void TIM_PWM_Start(void);
+void TIM_PWM_Set(uint16_t*);
+void Duty_Set(float);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
