@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
- ******************************************************************************
- * File Name          : freertos.c
- * Description        : Code for freertos applications
- ******************************************************************************
- * @attention
- *
- * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
- * All rights reserved.</center></h2>
- *
- * This software component is licensed by ST under Ultimate Liberty license
- * SLA0044, the "License"; You may not use this file except in compliance with
- * the License. You may obtain a copy of the License at:
- *                             www.st.com/SLA0044
- *
- ******************************************************************************
- */
+  ******************************************************************************
+  * File Name          : freertos.c
+  * Description        : Code for freertos applications
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
+  *
+  ******************************************************************************
+  */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -26,11 +26,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */     
-#include "gpio.h"
-#include "usart.h"
-#include "tim.h"
 #include "can.h"
 #include "adc.h"
+#include "tim.h"
+#include "gpio.h"
+#include "usart.h"
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,6 +51,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+static int32_t encval;
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 osThreadId MinorLoopTaskHandle;
@@ -58,7 +60,7 @@ osThreadId CanCommunicatioHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-
+   
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -74,14 +76,14 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackTy
 /* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
 static StaticTask_t xIdleTaskTCBBuffer;
 static StackType_t xIdleStack[configMINIMAL_STACK_SIZE];
-
-void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
-		StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize) {
-	*ppxIdleTaskTCBBuffer = &xIdleTaskTCBBuffer;
-	*ppxIdleTaskStackBuffer = &xIdleStack[0];
-	*pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
-	/* place for user code */
-}
+  
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize )
+{
+  *ppxIdleTaskTCBBuffer = &xIdleTaskTCBBuffer;
+  *ppxIdleTaskStackBuffer = &xIdleStack[0];
+  *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+  /* place for user code */
+}                   
 /* USER CODE END GET_IDLE_TASK_MEMORY */
 
 /**
@@ -91,23 +93,23 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-
+       
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
-	/* add mutexes, ... */
+  /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
-	/* add semaphores, ... */
+  /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
-	/* start timers, add new ones, ... */
+  /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
-	/* add queues, ... */
+  /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -128,25 +130,26 @@ void MX_FREERTOS_Init(void) {
   CanCommunicatioHandle = osThreadCreate(osThread(CanCommunicatio), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
-	/* add threads, ... */
+  /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
- * @brief  Function implementing the defaultTask thread.
- * @param  argument: Not used
- * @retval None
- */
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used 
+  * @retval None
+  */
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-	/* Infinite loop */
-	for (;;) {
-		osDelay(1);
-	}
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
   /* USER CODE END StartDefaultTask */
 }
 
@@ -161,11 +164,9 @@ void StartMinorLoopTask(void const * argument)
 {
   /* USER CODE BEGIN StartMinorLoopTask */
   /* Infinite loop */
-	TickType_t pxPrevWakeTime = xTaskGetTickCount();
   for(;;)
   {
-		vTaskDelayUntil(&pxPrevWakeTime, 1); //20000Hz loop
-		Duty_Out(-0.1);
+    osDelay(1);
   }
   /* USER CODE END StartMinorLoopTask */
 }
@@ -181,10 +182,14 @@ void StartMajorLoopTask(void const * argument)
 {
   /* USER CODE BEGIN StartMajorLoopTask */
   /* Infinite loop */
-	TickType_t pxPrevWakeTime = xTaskGetTickCount();
   for(;;)
   {
-	  vTaskDelayUntil(&pxPrevWakeTime, 4); //5000Hz loop
+	encval=TIM_Encoder_Value();
+	uint32_t tim=HAL_GetTick();
+	float sec=tim/1000.0;
+	float duty=0.9*sinf(M_TWOPI*sec);
+	Duty_Set(duty);
+    osDelay(1);
   }
   /* USER CODE END StartMajorLoopTask */
 }
@@ -200,17 +205,16 @@ void StartCanCommunicationTask(void const * argument)
 {
   /* USER CODE BEGIN StartCanCommunicationTask */
   /* Infinite loop */
-	TickType_t pxPrevWakeTime = xTaskGetTickCount();
   for(;;)
   {
-	  vTaskDelayUntil(&pxPrevWakeTime, 20); //1kHz loop
+    osDelay(1);
   }
   /* USER CODE END StartCanCommunicationTask */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-
+     
 /* USER CODE END Application */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

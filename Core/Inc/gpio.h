@@ -32,12 +32,13 @@
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
+
 /* USER CODE END Private defines */
 
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-void GPIO_Show_Speed(int);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
