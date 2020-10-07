@@ -21,7 +21,11 @@
 #include "can.h"
 
 /* USER CODE BEGIN 0 */
-
+//CAN_TxHeaderTypeDef TxHeader;
+//CAN_RxHeaderTypeDef RxHeader;
+//uint8_t TxData[8];
+//uint8_t RxData[8];
+//uint32_t TxMailbox;
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan;
@@ -46,6 +50,19 @@ void MX_CAN_Init(void)
   {
     Error_Handler();
   }
+
+  CAN_FilterTypeDef sFilterConfig;
+  sFilterConfig.FilterBank=0;
+  sFilterConfig.FilterMode=CAN_FILTERMODE_IDLIST;
+  sFilterConfig.FilterScale=CAN_FILTERSCALE_16BIT;
+  sFilterConfig.FilterIdHigh=0x45<<5;
+  sFilterConfig.FilterMaskIdLow=0x45<<5;
+  sFilterConfig.FilterMaskIdHigh=0x45<<5;
+  sFilterConfig.FilterMaskIdLow=0x45<<5;
+  sFilterConfig.FilterFIFOAssignment=CAN_RX_FIFO0;
+  sFilterConfig.FilterActivation=ENABLE;
+  sFilterConfig.SlaveStartFilterBank=14;
+  if(HAL_CAN_ConfigFilter(&hcan, &sFilterConfig)!=HAL_OK)Error_Handler();
 
 }
 
@@ -114,7 +131,12 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcanx){
+	if (HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &RxHeader, RxData) !=HAL_OK){
+		Error_Handler();
+	}
 
+}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
