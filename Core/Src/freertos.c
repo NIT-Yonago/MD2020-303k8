@@ -32,6 +32,7 @@
 #include "gpio.h"
 #include "usart.h"
 #include "math.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -185,9 +186,11 @@ void StartMajorLoopTask(void const * argument)
   for(;;)
   {
 	encval=TIM_Encoder_Value();
+//	TxData[5]=encval%200;
+	memcpy(TxData,encval,4);
 	uint32_t tim=HAL_GetTick();
 	float sec=tim/1000.0;
-	float duty=0.9*sinf(M_TWOPI*sec);
+	float duty=0.1*sinf(M_TWOPI*sec);
 	Duty_Set(duty);
     osDelay(1);
   }
@@ -205,9 +208,28 @@ void StartCanCommunicationTask(void const * argument)
 {
   /* USER CODE BEGIN StartCanCommunicationTask */
   /* Infinite loop */
+	HAL_CAN_Start(&hcan);
+	if (HAL_CAN_ActivateNotification(&hcan,CAN_IT_RX_FIFO0_MSG_PENDING)!=HAL_OK){
+		Error_Handler();
+	}
+
   for(;;)
   {
-    osDelay(1);
+		TxHeader.StdId = 0x100;
+		TxHeader.RTR = CAN_RTR_DATA;
+		TxHeader.IDE = CAN_ID_STD;
+		TxHeader.DLC = 8;
+		TxHeader.TransmitGlobalTime = DISABLE;
+		TxData[0] = 100;
+		TxData[1] = RxData[1];
+		TxData[7] = RxData[2];
+		if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox)
+				!= HAL_OK)
+			Error_Handler();
+		while (HAL_CAN_GetTxMailboxesFreeLevel(&hcan) != 3) {
+
+		}
+		osDelay(1);
   }
   /* USER CODE END StartCanCommunicationTask */
 }
